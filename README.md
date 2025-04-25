@@ -40,6 +40,7 @@ Jenkins отслеживает изменения (через webhook или pul
 ⚠️ Уведомление в Telegram
 
 Контейнер удаляется
+
 ![image](https://github.com/user-attachments/assets/cb5bd09e-9707-41b8-a655-f0a7691787d8)
 
 
