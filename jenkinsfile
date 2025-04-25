@@ -1,0 +1,82 @@
+pipeline {
+    agent any
+
+    environment {
+        TELEGRAM_BOT_TOKEN = credentials('telegram-bot-token')
+        CHAT_ID = '884722934'
+    }
+
+    stages {
+        stage('Clone repository') {
+            steps {
+                git branch: 'main', credentialsId: '<credentialsId>', url: 'https://github.com/1exanOK/jenkins_sf.git'
+            }
+        }
+
+        stage('Build & Run Container') {
+            steps {
+                sh 'docker build -t nginx .'
+                sh 'docker run -d -p 9889:80 nginx'
+            }
+        }
+
+        stage('Check HTTP Response') {
+            steps {
+                script {
+                    def responseCode = sh(returnStdout: true, script: "curl -s -o /dev/null -w '%{http_code}' localhost:9889").trim()
+                    if (responseCode != "200") {
+                        error("HTTP Response code is not 200!")
+                    }
+                }
+            }
+        }
+
+        stage('Compare MD5 Sums') {
+            steps {
+                script {
+                    // MD5 от исходного файла
+                    def originalMD5 = sh(script: "md5sum index.html | awk '{print \$1}'", returnStdout: true).trim()
+
+                    // Получаем HTML от Nginx
+                    def contentFromNginx = sh(returnStdout: true, script: "curl -s localhost:9889/index.html")
+
+                    // Сохраняем его через writeFile
+                    writeFile file: 'temp-index.html', text: contentFromNginx
+
+                    // MD5 от сохранённого
+                    def receivedMD5 = sh(script: "md5sum temp-index.html | awk '{print \$1}'", returnStdout: true).trim()
+
+                    // Удаляем временный файл
+                    sh "rm temp-index.html"
+
+                    if (originalMD5 != receivedMD5) {
+                        error("MD5 sums do not match!")
+                    }
+                }
+            }
+        }
+    }
+
+    post {
+        always {
+            cleanWs()
+        }
+        success {
+            notifyTelegram("🚀 Сборка прошла успешно! Branch: ${env.BRANCH_NAME ?: 'main'}, Build №${env.BUILD_NUMBER}")
+        }
+        failure {
+            notifyTelegram("⛑️ Сборка провалилась! Branch: ${env.BRANCH_NAME ?: 'main'}, Build №${env.BUILD_NUMBER}. Посмотреть отчёт: ${env.BUILD_URL}")
+        }
+    }
+}
+
+def notifyTelegram(message) {
+    withCredentials([string(credentialsId: 'telegram-bot-token', variable: 'TELEGRAM_BOT_TOKEN')]) {
+        sh """
+           curl -X POST \
+               -H 'Content-Type: application/json' \
+               -d '{"chat_id": "${CHAT_ID}", "text": "${message}"}' \
+               "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage"
+        """
+    }
+}
