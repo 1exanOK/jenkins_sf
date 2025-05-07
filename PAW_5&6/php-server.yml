@@ -1,0 +1,7 @@
+---
+- name: Configure php-fpm server
+  hosts: php
+  become: true
+  roles:
+    - users
+    - php

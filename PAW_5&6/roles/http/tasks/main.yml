@@ -1,0 +1,38 @@
+---
+- name: Install nginx
+  apt:
+    name: nginx
+    state: present
+    update_cache: yes
+
+- name: Configure nginx for PHP via 9000 port
+  copy:
+    dest: /etc/nginx/sites-available/default
+    content: |
+      server {
+          listen 80;
+          server_name localhost;
+
+          root /var/www/html;
+          index index.php index.html;
+
+          location / {
+              try_files $uri $uri/ =404;
+          }
+
+          location ~ \.php$ {
+              include snippets/fastcgi-php.conf;
+              fastcgi_pass 127.0.0.1:9000;
+          }
+
+          location ~ /\.ht {
+              deny all;
+          }
+      }
+  notify: Reload nginx
+
+- name: Ensure nginx is running
+  service:
+    name: nginx
+    state: started
+    enabled: true

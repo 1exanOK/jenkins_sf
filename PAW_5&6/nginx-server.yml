@@ -1,0 +1,7 @@
+---
+- name: Configure nginx server
+  hosts: nginx
+  become: true
+  roles:
+    - users
+    - http
