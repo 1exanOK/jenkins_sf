@@ -1,0 +1,8 @@
+---
+vsftpd_config:
+  anonymous_enable: "NO"
+  local_enable: "YES"
+  write_enable: "YES"
+  chroot_local_user: "YES"
+  listen: "YES"
+  listen_ipv6: "NO"

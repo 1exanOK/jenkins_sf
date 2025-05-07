@@ -1,0 +1,12 @@
+# vsftpd configuration
+anonymous_enable={{ vsftpd_config.anonymous_enable }}
+local_enable={{ vsftpd_config.local_enable }}
+write_enable={{ vsftpd_config.write_enable }}
+chroot_local_user={{ vsftpd_config.chroot_local_user }}
+listen={{ vsftpd_config.listen }}
+listen_ipv6={{ vsftpd_config.listen_ipv6 }}
+
+# Additional options
+pam_service_name=vsftpd
+userlist_enable=YES
+tcp_wrappers=YES

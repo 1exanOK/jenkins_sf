@@ -1,0 +1,29 @@
+---
+- name: Create user and set SSH key
+  hosts: all
+  become: true
+  vars_files:
+    - vault_user_key.yml
+
+  tasks:
+    - name: Ensure user1 exists
+      user:
+        name: user1
+        shell: /bin/bash
+        create_home: yes
+
+    - name: Create .ssh directory
+      file:
+        path: /home/user1/.ssh
+        state: directory
+        owner: user1
+        group: user1
+        mode: 0700
+
+    - name: Add SSH public key
+      copy:
+        content: "{{ ssh_public_key }}"
+        dest: /home/user1/.ssh/authorized_keys
+        owner: user1
+        group: user1
+        mode: 0600

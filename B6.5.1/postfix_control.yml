@@ -1,0 +1,31 @@
+---
+- name: Manage Postfix
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Install Postfix
+      apt:
+        name: postfix
+        state: present
+        update_cache: yes
+      tags: 
+        - init
+        - postfix
+
+    - name: Ensure Postfix is running
+      service:
+        name: postfix
+        state: started
+        enabled: yes
+      tags: 
+        - init
+        - postfix
+
+    - name: Remove Postfix
+      apt:
+        name: postfix
+        state: absent
+      tags: 
+        - drop
+        - postfix

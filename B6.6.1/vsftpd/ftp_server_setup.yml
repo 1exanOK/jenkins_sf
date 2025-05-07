@@ -1,0 +1,7 @@
+---
+- name: Install and configure vsftpd FTP server
+  hosts: all
+  become: true
+
+  roles:
+    - vsftpd
