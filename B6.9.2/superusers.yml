@@ -1,0 +1,28 @@
+---
+- name: Configure superusers group with sudo access
+  hosts: all
+  become: true
+
+  tasks:
+    - name: Ensure group superusers exists
+      group:
+        name: superusers
+        state: present
+
+    - name: Ensure user2 and user3 exist and added to superusers group
+      user:
+        name: "{{ item }}"
+        groups: superusers
+        append: yes
+        state: present
+      loop:
+        - user2
+        - user3
+
+    - name: Add sudo rule for superusers
+      lineinfile:
+        path: /etc/sudoers.d/superusers
+        line: "%superusers ALL=(ALL) ALL"
+        create: yes
+        mode: '0440'
+        validate: 'visudo -cf %s'

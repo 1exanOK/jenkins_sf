@@ -1,0 +1,41 @@
+---
+- name: Install nginx and php-fpm
+  apt:
+    name:
+      - nginx
+      - php-fpm
+    state: present
+    update_cache: yes
+
+- name: Create DocumentRoot
+  file:
+    path: /opt/nginx/ansible
+    state: directory
+    owner: www-data
+    group: www-data
+    mode: '0755'
+    recurse: yes
+
+- name: Deploy PHP info page
+  template:
+    src: index.php.j2
+    dest: /opt/nginx/ansible/index.php
+    owner: www-data
+    group: www-data
+    mode: '0644'
+
+- name: Deploy nginx default site
+  template:
+    src: default.j2
+    dest: /etc/nginx/sites-available/default
+    mode: '0644'
+  notify: Reload nginx
+
+- name: Ensure services are running
+  service:
+    name: "{{ item }}"
+    state: started
+    enabled: true
+  loop:
+    - nginx
+    - php8.1-fpm
